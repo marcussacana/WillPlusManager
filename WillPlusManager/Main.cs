@@ -46,7 +46,7 @@ namespace WillPlusManager
                 for (int i = 0; i < Rst.Length; i++) {
                     string str = Rst[i].String;
                     if (str.EndsWith("%K%P")) {
-                        Rst[i].String = str.Substring(0, str.Length - "%K%P".Length);
+                        Rst[i].SetString(str.Substring(0, str.Length - "%K%P".Length));
                         Rst[i].Prefix = "%K%P";
                     }
                 }
@@ -68,6 +68,10 @@ namespace WillPlusManager
         }
 
         private byte[] WriteString(byte[] outScript, WS2String Entry) {
+            if (Entry.String.Length > Entry.str.Length)
+                throw new Exception("String \"" + Entry.String + "\" Are too big.");
+            while (Entry.String.Length < Entry.str.Length)
+                Entry.String += @" ";
             byte[] String = StringParse(Entry.String + Entry.Prefix);
             outScript = InsertArray(outScript, String, Entry.Position);
             if (Entry.HaveActor)
@@ -162,6 +166,11 @@ namespace WillPlusManager
             initialized = true;
         }
         public string String;
+        internal string str;
+        internal void SetString(string txt) {
+            str = txt;
+            String = txt;
+        }
         internal int Position;
         public string Prefix { get; internal set; }
 
