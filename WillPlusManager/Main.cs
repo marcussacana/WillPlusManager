@@ -99,11 +99,10 @@ namespace WillPlusManager
                 str[ind] = CuttedScript[pos + ind];
             string _str = ByteParse(str);
             CuttedScript = CutRegion(CuttedScript, pos, length);
-
-            return new WS2String() {
-                String = _str,
-                Position = pos
-            };
+            WS2String ws2 = new WS2String();
+            ws2.Position = pos;
+            ws2.SetString(_str);
+            return ws2;
         }
 
         private string ByteParse(byte[] data) {
@@ -141,12 +140,12 @@ namespace WillPlusManager
             return true;
         }
 
-        private byte[] Decrypt(ref byte[] data) {
+        public byte[] Decrypt(ref byte[] data) {
             for (int i = 0; i < data.Length; i++)
                 data[i] = RotateRight(data[i], 2);
             return data;
         }
-        private byte[] Encrypt(ref byte[] data) {
+        public byte[] Encrypt(ref byte[] data) {
             for (int i = 0; i < data.Length; i++)
                 data[i] = RotateLeft(data[i], 2);
             return data;

@@ -87,5 +87,16 @@ namespace WPMGUI {
                 System.IO.File.WriteAllBytes(FD.FileName, WP2Arc.GenArc(Entries));
             }
         }
+
+        private void decryptToolStripMenuItem_Click(object sender, EventArgs e) {
+            OpenFileDialog ofd = new OpenFileDialog();
+            DialogResult dr = ofd.ShowDialog();
+            if (dr == DialogResult.OK) {
+                byte[] file = System.IO.File.ReadAllBytes(ofd.FileName);
+                WS2 ws = new WS2(file, true);
+                file = ws.Decrypt(ref file);
+                System.IO.File.WriteAllBytes(ofd.FileName, file);
+            }
+        }
     }
 }
