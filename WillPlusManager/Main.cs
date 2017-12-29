@@ -20,11 +20,17 @@ namespace WillPlusManager
             WS2String[] Rst = new WS2String[0];
             byte[] TxtEntry = StringParse("char\x0");
             byte[] CharName = StringParse("%LC");
+            byte[] NewCharName = StringParse("%LF");
             WS2String Actor = null;
             bool AskMerged = true;
             for (int i = 0; i < CuttedScript.Length; i++) {
                 if (Equals(CuttedScript, CharName, i)) {
                     i += CharName.Length;
+                    Actor = GetString(i);
+                    AskMerged = false;
+                }
+                if (Equals(CuttedScript, NewCharName, i)) {
+                    i += NewCharName.Length;
                     Actor = GetString(i);
                     AskMerged = false;
                 }
@@ -47,7 +53,17 @@ namespace WillPlusManager
                     string str = Rst[i].String;
                     if (str.EndsWith("%K%P")) {
                         Rst[i].SetString(str.Substring(0, str.Length - "%K%P".Length));
-                        Rst[i].Prefix = "%K%P";
+                        Rst[i].Sufix = "%K%P";
+                    }
+                    if (Rst[i].HaveActor) {
+                        if (Rst[i].Actor.String.StartsWith("%LC")) {
+                            Rst[i].Actor.Prefix = "%LC";
+                            Rst[i].Actor.SetString(Rst[i].Actor.String.Substring(3, Rst[i].Actor.String.Length - 3));
+                        }
+                        if (Rst[i].Actor.String.StartsWith("%LF")) {
+                            Rst[i].Actor.Prefix = "%LF";
+                            Rst[i].Actor.SetString(Rst[i].Actor.String.Substring(3, Rst[i].Actor.String.Length - 3));
+                        }
                     }
                 }
             }
@@ -72,7 +88,7 @@ namespace WillPlusManager
                 throw new Exception("String \"" + Entry.String + "\" Are too big.");
             while (Entry.String.Length < Entry.str.Length)
                 Entry.String += @" ";
-            byte[] String = StringParse(Entry.String + Entry.Prefix);
+            byte[] String = StringParse(Entry.Prefix + Entry.String + Entry.Sufix);
             outScript = InsertArray(outScript, String, Entry.Position);
             if (Entry.HaveActor)
                 outScript = WriteString(outScript, Entry.Actor);
@@ -171,6 +187,7 @@ namespace WillPlusManager
             String = txt;
         }
         internal int Position;
+        public string Sufix { get; internal set; }
         public string Prefix { get; internal set; }
 
         public bool HaveActor { get; internal set;}

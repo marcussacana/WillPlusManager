@@ -41,7 +41,10 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StructStream.cs" />
+    <Compile Include="VirtStream.cs" />
     <Compile Include="WP2Arc.cs" />
+    <Compile Include="WS2Helper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

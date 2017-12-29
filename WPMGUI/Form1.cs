@@ -1,6 +1,7 @@
 ﻿using System;
 using WillPlusManager;
 using System.Windows.Forms;
+using System.IO;
 
 namespace WPMGUI {
     public partial class Form1 : Form {
@@ -8,17 +9,17 @@ namespace WPMGUI {
             InitializeComponent();
             MessageBox.Show("This GUI don't is a stable translation tool, this program is a Demo for my dll, the \"WillPlusManager.dll\" it's a opensoruce project to allow you make your program to edit any ws2 file, or extract/repack arc files.\n\nHow to use:\n*Rigth Click in the window to open or save the file\n*Select the string in listbox and edit in the text box\n*Press enter to update the string\n\nThis program is unstable!");
         }
-        WS2 Engine;
-        WS2String[] Strings;
+        WS2Helper Engine;
+        string[] Strings;
         private void openToolStripMenuItem_Click(object sender, EventArgs e) {
             OpenFileDialog fd = new OpenFileDialog();
             fd.Filter = "All WillPlus 2 Scripts | *.ws2";
             DialogResult dr = fd.ShowDialog();
             if (dr == DialogResult.OK) {
-                Engine = new WS2(System.IO.File.ReadAllBytes(fd.FileName), true);
+                Engine = new WS2Helper(System.IO.File.ReadAllBytes(fd.FileName));
                 Strings = Engine.Import();
-                foreach (WS2String str in Strings) {
-                    listBox1.Items.Add(str.String);
+                foreach (string str in Strings) {
+                    listBox1.Items.Add(str);
                 }
             }
         }
@@ -26,11 +27,11 @@ namespace WPMGUI {
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e) {
             try {
                 int i = listBox1.SelectedIndex;
-                if (Strings[i].HaveActor)
-                    this.Text = Strings[i].Actor.String;
+                if (i >= Engine.ActorCount && Engine.Entries[i - Engine.ActorCount].HaveActor)
+                    Text = Engine.Entries[i - Engine.ActorCount].Actor.String + " - ID: " + i;
                 else
-                    this.Text = "No Actor - ID: " + i;
-                textBox1.Text = Strings[i].String;
+                    Text = "No Actor - ID: " + i;
+                textBox1.Text = Strings[i];
             }
             catch { }
         }
@@ -41,7 +42,7 @@ namespace WPMGUI {
             DialogResult dr = fd.ShowDialog();
             if (dr == DialogResult.OK) {
                 for (int i = 0; i < Strings.Length; i++)
-                    Strings[i].String = listBox1.Items[i].ToString();
+                    Strings[i] = listBox1.Items[i].ToString();
                 System.IO.File.WriteAllBytes(fd.FileName, Engine.Export(Strings));
              }
         }
@@ -58,13 +59,19 @@ namespace WPMGUI {
             FD.Filter = "All WillPlus 2 Arc Packgets | *.arc";
             DialogResult DR = FD.ShowDialog();
             if (DR == DialogResult.OK) {
-                File[] Entries = WP2Arc.Open(System.IO.File.ReadAllBytes(FD.FileName));
-                string dir = FD.FileName + "~\\";
-                if (System.IO.Directory.Exists(dir))
-                    System.IO.Directory.Delete(dir, true);
-                System.IO.Directory.CreateDirectory(dir);
-                foreach (File file in Entries)
-                    System.IO.File.WriteAllBytes(dir + file.fileName, file.Content);
+                using (Stream Packget = new StreamReader(FD.FileName).BaseStream) {
+                    var Entries = WP2Arc.Import(Packget);
+                    string dir = FD.FileName + "~\\";
+                    if (Directory.Exists(dir))
+                        Directory.Delete(dir, true);
+                    Directory.CreateDirectory(dir);
+                    foreach (var file in Entries) {
+                        using (Stream Writer = new StreamWriter(dir + file.FileName).BaseStream) {
+                            file.Content.CopyTo(Writer);
+                        }
+                    }
+                }
+                MessageBox.Show("Extracted");
             }
         }
 
@@ -76,15 +83,17 @@ namespace WPMGUI {
             FD.Filter = "All WillPlus 2 Arc Packgets | *.arc";
             DialogResult dr2 = FD.ShowDialog();
             if (dr == DialogResult.OK && dr2 == DialogResult.OK) {
-                string[] FilesNames = System.IO.Directory.GetFiles(BD.SelectedPath, "*.*", System.IO.SearchOption.TopDirectoryOnly);
-                File[] Entries = new File[FilesNames.Length];
+                string[] FilesNames = Directory.GetFiles(BD.SelectedPath, "*.*", SearchOption.TopDirectoryOnly);
+                var Entries = new WillPlusManager.File[FilesNames.Length];
                 for (int i = 0; i < Entries.Length; i++) {
-                    Entries[i] = new File {
-                        fileName = System.IO.Path.GetFileName(FilesNames[i]),
-                        Content = System.IO.File.ReadAllBytes(FilesNames[i])
+                    Entries[i] = new WillPlusManager.File {
+                        FileName = Path.GetFileName(FilesNames[i]),
+                        Content = new StreamReader(FilesNames[i]).BaseStream
                     };
                 }
-                System.IO.File.WriteAllBytes(FD.FileName, WP2Arc.GenArc(Entries));
+                using (Stream Output = new StreamWriter(FD.FileName).BaseStream) {
+                    WP2Arc.Export(Entries, Output, true);
+                }
             }
         }
 

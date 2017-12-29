@@ -1,96 +1,90 @@
-﻿using System;
+﻿using AdvancedBinary;
+using System.IO;
 using System.Text;
 
 namespace WillPlusManager {
-    public class WP2Arc {
-        static public File[] Open(byte[] Packget) {
-            int Count = GetOffset(Packget, 0x0);
-            int DataTable = GetOffset(Packget, 0x4) + 0x8; //+ HeaderSize
-            File[] Files = new File[Count];
-            int Now = 0;
-            for (int i = 0x8; i < DataTable;) {
-                int Length = GetOffset(Packget, i);
-                int Postion = GetOffset(Packget, i + 4) + DataTable;
-                i += 8;
-                int pointer = i;
-                byte[] Fname = new byte[0];
-                while (!(Packget[pointer - 1] == 0x0 && Packget[pointer] == 0x0)) {
-                    byte[] tmp = new byte[Fname.Length + 1];
-                    Fname.CopyTo(tmp, 0);
-                    tmp[Fname.Length] = Packget[pointer];
-                    Fname = tmp;
-                    pointer++;
-                }
-                string FileName = ByteParse(Fname);
-                i = pointer + 2;
-                byte[] FileData = new byte[Length];
-                for (int ind = 0; ind < Length; ind++)
-                    FileData[ind] = Packget[Postion + ind];
-                File Entry = new File() {
-                    fileName = FileName,
-                    Content = FileData
-                };
-                Files[Now] = Entry;
-                Now++;
+    public static class WP2Arc {
+        static uint HeaderLen = (uint)Tools.GetStructLength(new ArcHeader());
+        static public File[] Import(Stream Packget) {
+            StructReader Reader = new StructReader(Packget, Encoding: Encoding.Unicode);
+            ArcHeader Header = new ArcHeader();
+            Reader.ReadStruct(ref Header);
+            Header.BaseOffset += HeaderLen;
+
+            File[] Files = new File[Header.Count];
+            for (uint i = 0; i < Files.LongLength; i++) {
+                File Entry = new File();
+                Reader.ReadStruct(ref Entry);
+
+                Entry.Content = new VirtStream(Packget, Entry.Offset + Header.BaseOffset, Entry.Length);
+
+                Files[i] = Entry;
             }
+
             return Files;
         }
 
-        static public byte[] GenArc(File[] Entries) {
-            byte[] Header = new byte[8];
-            GenOffset(Entries.Length).CopyTo(Header, 0);
-            byte[] ArcEntries = new byte[0];
-            byte[] DataTable = new byte[0];
-            for (int i = 0; i < Entries.Length; i++) {
-                byte[] EntryHeader = new byte[8];
-                GenOffset(Entries[i].Content.Length).CopyTo(EntryHeader, 0);
-                GenOffset(DataTable.Length).CopyTo(EntryHeader, 4);
-                byte[] FName = StringParse(Entries[i].fileName + "\x0");
-                //Create Entry
-                byte[] tmp = new byte[ArcEntries.Length + EntryHeader.Length + FName.Length];
-                ArcEntries.CopyTo(tmp, 0);
-                EntryHeader.CopyTo(tmp, ArcEntries.Length);
-                FName.CopyTo(tmp, ArcEntries.Length + EntryHeader.Length);
-                ArcEntries = tmp;
-                //Write File 
-                tmp = new byte[DataTable.Length + Entries[i].Content.Length];
-                DataTable.CopyTo(tmp, 0);
-                Entries[i].Content.CopyTo(tmp, DataTable.Length);
-                DataTable = tmp; 
-            }
-            GenOffset(ArcEntries.Length).CopyTo(Header, 4);
-            byte[] rst = new byte[Header.Length + ArcEntries.Length + DataTable.Length];
-            Header.CopyTo(rst, 0);
-            ArcEntries.CopyTo(rst, Header.Length);
-            DataTable.CopyTo(rst, Header.Length + ArcEntries.Length);
-            return rst;
-        }
+        
+        static public void Export(File[] Files, Stream Output, bool CloseStreams = true) {
+            StructWriter Writer = new StructWriter(Output, Encoding: Encoding.Unicode);
 
-        private static byte[] GenOffset(int value) {
-            byte[] data = BitConverter.GetBytes(value);
-            while (data.Length % 4 != 0) {
-                byte[] tmp = new byte[data.Length+1];
-                data.CopyTo(tmp, 0);
-                data = tmp;
+            uint DataInfoLen = 0;
+            foreach (File f in Files)
+                DataInfoLen += (uint)Tools.GetStructLength(f, Encoding.Unicode);
+
+            ArcHeader Header = new ArcHeader() {
+                Count = (uint)Files.LongLength,
+                BaseOffset = DataInfoLen
+            };
+
+            Writer.WriteStruct(ref Header);
+
+            uint Ptr = 0;
+            for (uint i = 0; i < Files.LongLength; i++) {
+                Files[i].Offset = Ptr;
+                Files[i].Length = (uint)Files[i].Content.Length;
+
+                Ptr += Files[i].Length;
+
+                Writer.WriteStruct(ref Files[i]);
             }
-            return data;
-        }
-        private static string ByteParse(byte[] str) {
-            return Encoding.Unicode.GetString(str);
-        }
-        private static byte[] StringParse(string str) {
-            return Encoding.Unicode.GetBytes(str);
-        }
-        private static int GetOffset(byte[] data, int Pos) {
-            byte[] Variable = new byte[4];
-            for (int i = 0; i < Variable.Length; i++)
-                Variable[i] = data[Pos+i];
-            return BitConverter.ToInt32(Variable, 0);
+
+            for (uint i = 0; i < Files.LongLength; i++) {
+                int Readed = 0;
+                uint TotalLen = 0;
+                byte[] Buffer = new byte[1024 * 1024];
+                do {
+                    Readed = Files[i].Content.Read(Buffer, 0, Buffer.Length);
+                    Output.Write(Buffer, 0, Readed);
+                    TotalLen += (uint)Readed;
+                } while (Readed > 0);
+                Output.Flush();
+
+                //System.Diagnostics.Debug.Assert(TotalLen == Files[i].Length);
+
+                if (CloseStreams)
+                    Files[i].Content.Close();
+            }
+
+            if (CloseStreams)
+                Writer.Close();
         }
 
     }
-    public class File {
-        public string fileName;
-        public byte[] Content;
+
+    public struct ArcHeader {
+        public uint Count;
+        public uint BaseOffset;
+    }
+
+    public struct File {
+        public uint Length;
+        public uint Offset;
+
+        [UCString]
+        public string FileName;
+
+        [Ignore]
+        public Stream Content;
     }
 }
