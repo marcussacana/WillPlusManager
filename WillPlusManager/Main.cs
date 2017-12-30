@@ -21,9 +21,33 @@ namespace WillPlusManager
             byte[] TxtEntry = StringParse("char\x0");
             byte[] CharName = StringParse("%LC");
             byte[] NewCharName = StringParse("%LF");
+            byte[] ChoiceOP = new byte[] { 0x00, 0xFF, 0x0F, 0x02 };//0xFF = any, the opcode is just 0x0F02
             WS2String Actor = null;
             bool AskMerged = true;
             for (int i = 0; i < CuttedScript.Length; i++) {
+                if (Equals(CuttedScript, ChoiceOP, i)) {
+                    i += ChoiceOP.Length;
+                    if (CuttedScript[i] == 0x00)
+                        continue;
+
+                    bool Continue = true;
+                    while (i < CuttedScript.Length && Continue) {
+                        i += 2;
+                        WS2String str = GetString(i);
+                        i += 4;
+
+                        while (CuttedScript[i] != 0x00)
+                            i++;
+
+                        if (CuttedScript[++i] == 0xFF)
+                            Continue = false;
+
+                        WS2String[] tmp = new WS2String[Rst.Length + 1];
+                        Rst.CopyTo(tmp, 0);
+                        tmp[Rst.Length] = str;
+                        Rst = tmp;
+                    }
+                }
                 if (Equals(CuttedScript, CharName, i)) {
                     i += CharName.Length;
                     Actor = GetString(i);
@@ -148,10 +172,10 @@ namespace WillPlusManager
             return rst;
         }
         private bool Equals(byte[] Var1, byte[] Var2, int Pos) {
-            if (Var2.Length > Var1.Length)
+            if (Var2.Length + Pos > Var1.Length)
                 return false;
             for (int i = 0; i < Var2.Length; i++)
-                if (Var1[i + Pos] != Var2[i])
+                if (Var1[i + Pos] != Var2[i] && Var2[i] != 0xFF)
                     return false;
             return true;
         }
