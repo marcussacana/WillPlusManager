@@ -34,6 +34,7 @@
             this.createPackgetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bytecodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.decryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.encryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -68,19 +69,19 @@
             this.arcToolStripMenuItem,
             this.bytecodeToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(124, 92);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 114);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
@@ -90,7 +91,7 @@
             this.extractFilesToolStripMenuItem,
             this.createPackgetToolStripMenuItem});
             this.arcToolStripMenuItem.Name = "arcToolStripMenuItem";
-            this.arcToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.arcToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.arcToolStripMenuItem.Text = "Arc";
             // 
             // extractFilesToolStripMenuItem
@@ -110,17 +111,25 @@
             // bytecodeToolStripMenuItem
             // 
             this.bytecodeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.decryptToolStripMenuItem});
+            this.decryptToolStripMenuItem,
+            this.encryptToolStripMenuItem});
             this.bytecodeToolStripMenuItem.Name = "bytecodeToolStripMenuItem";
-            this.bytecodeToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.bytecodeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.bytecodeToolStripMenuItem.Text = "Bytecode";
             // 
             // decryptToolStripMenuItem
             // 
             this.decryptToolStripMenuItem.Name = "decryptToolStripMenuItem";
-            this.decryptToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
+            this.decryptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.decryptToolStripMenuItem.Text = "Decrypt";
             this.decryptToolStripMenuItem.Click += new System.EventHandler(this.decryptToolStripMenuItem_Click);
+            // 
+            // encryptToolStripMenuItem
+            // 
+            this.encryptToolStripMenuItem.Name = "encryptToolStripMenuItem";
+            this.encryptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.encryptToolStripMenuItem.Text = "Encrypt";
+            this.encryptToolStripMenuItem.Click += new System.EventHandler(this.encryptToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -150,6 +159,7 @@
         private System.Windows.Forms.ToolStripMenuItem createPackgetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem bytecodeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem decryptToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem encryptToolStripMenuItem;
     }
 }
 

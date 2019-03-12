@@ -103,9 +103,23 @@ namespace WPMGUI {
             if (dr == DialogResult.OK) {
                 byte[] file = System.IO.File.ReadAllBytes(ofd.FileName);
                 WS2 ws = new WS2(file, true);
-                file = ws.Decrypt(ref file);
+                file = ws.Decrypt(file);
                 System.IO.File.WriteAllBytes(ofd.FileName, file);
+                MessageBox.Show("decrypted");
             }
+        }
+
+        private void encryptToolStripMenuItem_Click(object sender, EventArgs e) {
+            OpenFileDialog ofd = new OpenFileDialog();
+            DialogResult dr = ofd.ShowDialog();
+            if (dr == DialogResult.OK) {
+                byte[] file = System.IO.File.ReadAllBytes(ofd.FileName);
+                WS2 ws = new WS2(file, true);
+                file = ws.Encrypt(file);
+                System.IO.File.WriteAllBytes(ofd.FileName, file);
+                MessageBox.Show("encrypted");
+            }
+
         }
     }
 }

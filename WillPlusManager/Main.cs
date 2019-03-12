@@ -9,7 +9,7 @@ namespace WillPlusManager
         private bool Initialized = false;
         private bool filter;
         public WS2(byte[] Script, bool Filter) {
-            script = Decrypt(ref Script);
+            script = Decrypt(Script);
             Initialized = true;
             filter = Filter;
         }
@@ -104,7 +104,7 @@ namespace WillPlusManager
                     throw new Exception("You Can't Create String Entry");
                 OutScript = WriteString(OutScript, Entries[i]);
             }
-            return Encrypt(ref OutScript);
+            return Encrypt(OutScript);
         }
 
         private byte[] WriteString(byte[] outScript, WS2String Entry) {
@@ -180,15 +180,17 @@ namespace WillPlusManager
             return true;
         }
 
-        public byte[] Decrypt(ref byte[] data) {
+        public byte[] Decrypt(byte[] data) {
+            byte[] NewData = new byte[data.Length];
             for (int i = 0; i < data.Length; i++)
-                data[i] = RotateRight(data[i], 2);
-            return data;
+                NewData[i] = RotateRight(data[i], 2);
+            return NewData;
         }
-        public byte[] Encrypt(ref byte[] data) {
+        public byte[] Encrypt(byte[] data) {
+            byte[] NewData = new byte[data.Length];
             for (int i = 0; i < data.Length; i++)
-                data[i] = RotateLeft(data[i], 2);
-            return data;
+                NewData[i] = RotateLeft(data[i], 2);
+            return NewData;
         }
         private byte RotateLeft(byte value, int count) {
             return (byte)((value << count) | (value >> (8 - count)));
